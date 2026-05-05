@@ -109,7 +109,19 @@
     if (allianceFactions.includes(factionId)) {
         addBadge();
         attachWarning(factionId);
+            }
     }
-}
 
+    /////////////////////////////
+    // INIT (FAST LOAD)
+    /////////////////////////////
 
+    loadAllianceData().then(() => {
+        runCheck();
+
+        // React instantly to page changes
+        const observer = new MutationObserver(runCheck);
+        observer.observe(document.body, { childList: true, subtree: true });
+    });
+
+})();
