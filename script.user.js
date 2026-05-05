@@ -15,7 +15,7 @@
 
     const BASE_URL = "https://raw.githubusercontent.com/thompsoncict-jpg/Iron-Dome-alliance/main/";
     const CONFIG_URL = "https://raw.githubusercontent.com/thompsoncict-jpg/Iron-Dome-alliance/refs/heads/main/alliance.json";
-    const BADGE_URL  = "https://github.com/thompsoncict-jpg/Iron-Dome-alliance/blob/main/alliance.png";
+    const BADGE_URL  = "https://raw.github.com/thompsoncict-jpg/Iron-Dome-alliance/blob/main/alliance.png";
 
     /////////////////////////////
     // CACHE (important)
