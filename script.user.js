@@ -1,41 +1,42 @@
 // ==UserScript==
-// @name         Torn Alliance Toolkit (Fast)
-// @version      2.0
+// @name         Torn Alliance Toolkit (Stable Instant)
+// @version      3.1
 // @match        https://www.torn.com/*
-// @grant        GM_xmlhttpRequest
-// @connect      raw.githubusercontent.com
 // ==/UserScript==
 
 (function() {
     'use strict';
 
-    /////////////////////////////
-    // CONFIG
-    /////////////////////////////
-
     const BASE_URL = "https://raw.githubusercontent.com/thompsoncict-jpg/Iron-Dome-alliance/main/";
-    const CONFIG_URL = "https://raw.githubusercontent.com/thompsoncict-jpg/Iron-Dome-alliance/refs/heads/main/alliance.json";
-    const BADGE_URL  = "https://github.com/thompsoncict-jpg/Iron-Dome-alliance/blob/main/alliance.png?raw=true";
+    const CONFIG_URL = BASE_URL + "alliance.json";
+    const BADGE_URL  = BASE_URL + "alliance.png";
+
+    let allianceFactions = [];
+    let dataLoaded = false;
 
     /////////////////////////////
-    // CACHE (important)
+    // FETCH (RELIABLE)
     /////////////////////////////
 
-       async function loadAllianceData() {
+    async function loadAllianceData() {
         try {
-            // Force fresh request every time
             const res = await fetch(CONFIG_URL + "?t=" + Date.now());
             const json = await res.json();
-            allianceFactions = json.factions || [];
 
-            console.log("✅ Alliance data loaded:", allianceFactions);
+            allianceFactions = json.factions || [];
+            dataLoaded = true;
+
+            console.log("✅ Loaded factions:", allianceFactions);
         } catch (e) {
-            console.log("❌ Failed to fetch alliance data", e);
+            console.log("❌ Fetch failed, retrying...", e);
+
+            // retry after 2s
+            setTimeout(loadAllianceData, 2000);
         }
     }
 
     /////////////////////////////
-    // DETECT FACTION
+    // GET FACTION
     /////////////////////////////
 
     function getFactionId() {
@@ -47,23 +48,27 @@
     }
 
     /////////////////////////////
-    // ADD BADGE
+    // BADGE
     /////////////////////////////
 
     function addBadge() {
         if (document.getElementById("alliance-badge")) return;
 
-        const container = document.querySelector('.profile-wrapper, .user-profile');
+        const container =
+            document.querySelector('.profile-wrapper') ||
+            document.querySelector('.user-profile') ||
+            document.querySelector('[class*="profile"]');
+
         if (!container) return;
 
         const badge = document.createElement("div");
         badge.id = "alliance-badge";
+        badge.style.textAlign = "center";
+        badge.style.marginBottom = "10px";
 
         badge.innerHTML = `
-            <div style="text-align:center; margin-bottom:10px;">
-                <img src="${BADGE_URL}" style="width:120px;border-radius:10px;">
-                <div style="color:#4CAF50;font-weight:bold;">ALLIANCE MEMBER</div>
-            </div>
+            <img src="${BADGE_URL}" style="width:100px;border-radius:8px;">
+            <div style="color:#4CAF50;font-weight:bold;">ALLIANCE MEMBER</div>
         `;
 
         container.prepend(badge);
@@ -85,29 +90,43 @@
     }
 
     /////////////////////////////
-    // MAIN
+    // MAIN CHECK
     /////////////////////////////
 
-   function runCheck() {
-    const factionId = getFactionId();
-    if (!factionId) return;
+    function runCheck() {
+        if (!dataLoaded) return; // wait until data is ready
 
-    if (allianceFactions.includes(factionId)) {
-        addBadge();
-        attachWarning(factionId);
-            }
+        const factionId = getFactionId();
+        if (!factionId) return;
+
+        if (allianceFactions.includes(factionId)) {
+            addBadge();
+            attachWarning(factionId);
+        }
     }
 
     /////////////////////////////
-    // INIT (FAST LOAD)
+    // OBSERVER
     /////////////////////////////
 
-    loadAllianceData().then(() => {
-        runCheck();
-
-        // React instantly to page changes
+    function startObserver() {
         const observer = new MutationObserver(runCheck);
         observer.observe(document.body, { childList: true, subtree: true });
-    });
+    }
+
+    /////////////////////////////
+    // INIT
+    /////////////////////////////
+
+    async function init() {
+        await loadAllianceData();
+        runCheck();
+        startObserver();
+
+        // keep data fresh every 30s
+        setInterval(loadAllianceData, 30000);
+    }
+
+    init();
 
 })();
