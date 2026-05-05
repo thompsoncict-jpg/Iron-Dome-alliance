@@ -102,9 +102,14 @@
     // MAIN
     /////////////////////////////
 
-    function runCheck() {
-        const factionId = getFactionId();
-        if (!factionId) return;
+   function runCheck() {
+    const factionId = getFactionId();
+    if (!factionId) return;
 
-        if (allianceFactions.includes(factionId
+    if (allianceFactions.includes(factionId)) {
+        addBadge();
+        attachWarning(factionId);
+    }
+}
+
 
