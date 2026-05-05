@@ -17,7 +17,7 @@
     const BASE_URL = "https://raw.githubusercontent.com/YOUR_USERNAME/torn-alliance-tool/main/";
 
     const CONFIG_URL = https://github.com/thompsoncict-jpg/Iron-Dome-alliance/edit/main/allince%20list;
-    const BADGE_URL  = BASE_URL + "alliance.png";
+    const BADGE_URL  = https://github.com/thompsoncict-jpg/Iron-Dome-alliance/blob/main/iron%20dome.gif;
 
     const SETTINGS = {
         blockAttack: false,
