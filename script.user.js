@@ -14,7 +14,7 @@
     // 🔧 CONFIG (EDIT THIS ONLY)
     /////////////////////////////
 
-    const BASE_URL = "https://github.com/thompsoncict-jpg/Iron-Dome-alliance/tree/main"
+    const BASE_URL = "https://github.com/thompsoncict-jpg/Iron-Dome-alliance/tree/main";
 
     const CONFIG_URL = https://github.com/thompsoncict-jpg/Iron-Dome-alliance/edit/main/allince%20list;
     const BADGE_URL  = https://github.com/thompsoncict-jpg/Iron-Dome-alliance/blob/main/iron%20dome.gif;
