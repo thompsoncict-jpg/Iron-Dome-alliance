@@ -1,6 +1,6 @@
 // ==UserScript==
-// @name         Torn Alliance Toolkit (Browser FIXED)
-// @version      5.0
+// @name         Torn Alliance Toolkit (FINAL FIXED)
+// @version      6.0
 // @match        https://www.torn.com/*
 // @grant        GM_xmlhttpRequest
 // @connect      raw.githubusercontent.com
@@ -9,7 +9,11 @@
 (function() {
     'use strict';
 
-    const CONFIG_URL = "https://raw.githubusercontent.com/thompsoncict-jpg/Iron-Dome-alliance/refs/heads/main/alliance.json";
+    /////////////////////////////
+    // CONFIG
+    /////////////////////////////
+
+    const CONFIG_URL = "https://raw.githubusercontent.com/thompsoncict-jpg/Iron-Dome-alliance/main/alliance.json";
     const BADGE_URL  = "https://raw.githubusercontent.com/thompsoncict-jpg/Iron-Dome-alliance/main/alliance.png";
 
     let allianceFactions = [];
@@ -26,7 +30,7 @@
                 onload: res => {
                     try {
                         allianceFactions = JSON.parse(res.responseText).factions || [];
-                        console.log("✅ Loaded factions:", allianceFactions);
+                        console.log("✅ Alliance list:", allianceFactions);
                     } catch (e) {
                         console.log("❌ JSON error", e);
                     }
@@ -41,35 +45,30 @@
     }
 
     /////////////////////////////
-    // STRONG FACTION DETECTION
+    // FIXED FACTION DETECTION
     /////////////////////////////
 
     function getFactionId() {
-        // Look through ALL links (more reliable)
-        const links = document.querySelectorAll("a[href]");
+        // ONLY look inside profile header
+        const profile = document.querySelector('[class*="profile"]');
+        if (!profile) return null;
 
-        for (let link of links) {
-            const href = link.getAttribute("href");
-            if (!href) continue;
+        const link = profile.querySelector('a[href*="factions.php"][href*="ID="]');
+        if (!link) return null;
 
-            if (href.includes("factions.php") && href.includes("ID=")) {
-                try {
-                    const url = new URL(link.href);
-                    const id = url.searchParams.get("ID");
-
-                    if (id) {
-                        console.log("🔎 Found faction ID:", id);
-                        return parseInt(id);
-                    }
-                } catch {}
+        try {
+            const id = new URL(link.href).searchParams.get("ID");
+            if (id) {
+                console.log("🎯 Player faction:", id);
+                return parseInt(id);
             }
-        }
+        } catch {}
 
         return null;
     }
 
     /////////////////////////////
-    // FORCE BADGE (VISIBLE)
+    // ADD BADGE
     /////////////////////////////
 
     function addBadge() {
@@ -95,11 +94,19 @@
         `;
 
         document.body.appendChild(badge);
-        console.log("✅ Badge added");
     }
 
     /////////////////////////////
-    // WARNING
+    // REMOVE BADGE (important)
+    /////////////////////////////
+
+    function removeBadge() {
+        const badge = document.getElementById("alliance-badge");
+        if (badge) badge.remove();
+    }
+
+    /////////////////////////////
+    // ATTACK WARNING
     /////////////////////////////
 
     function attachWarning(factionId) {
@@ -121,12 +128,14 @@
         const factionId = getFactionId();
         if (!factionId) return;
 
-        console.log("👀 Checking faction:", factionId);
+        console.log("Checking:", factionId);
 
         if (allianceFactions.includes(factionId)) {
-            console.log("🟢 MATCH FOUND");
+            console.log("🟢 ALLY DETECTED");
             addBadge();
             attachWarning(factionId);
+        } else {
+            removeBadge(); // FIXES false positives
         }
     }
 
@@ -137,8 +146,8 @@
     async function init() {
         await loadAllianceData();
 
-        setInterval(runCheck, 1500);   // check constantly
-        setInterval(loadAllianceData, 30000); // refresh data
+        setInterval(runCheck, 1500);
+        setInterval(loadAllianceData, 30000);
     }
 
     init();
