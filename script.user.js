@@ -1,7 +1,6 @@
 // ==UserScript==
-// @name         Torn Alliance Toolkit
-// @version      1.0
-// @description  Alliance warnings + profile badge (auto updating)
+// @name         Torn Alliance Toolkit (Fixed)
+// @version      1.1
 // @match        https://www.torn.com/*
 // @grant        GM_xmlhttpRequest
 // @connect      raw.githubusercontent.com
@@ -11,61 +10,26 @@
     'use strict';
 
     /////////////////////////////
-    // 🔧 CONFIG (EDIT THIS ONLY)
+    // CONFIG
     /////////////////////////////
 
-    const BASE_URL = "https://github.com/thompsoncict-jpg/Iron-Dome-alliance/tree/main";
-
-    const CONFIG_URL = https://github.com/thompsoncict-jpg/Iron-Dome-alliance/edit/main/allince%20list;
-    const BADGE_URL  = https://github.com/thompsoncict-jpg/Iron-Dome-alliance/blob/main/iron%20dome.gif;
-
-    const SETTINGS = {
-        blockAttack: false,
-        cacheMinutes: 10
-    };
+    const BASE_URL = "https://raw.githubusercontent.com/thompsoncict-jpg/torn-alliance-tool/main/";
+    const CONFIG_URL = BASE_URL + "alliance.json";
+    const BADGE_URL  = BASE_URL + "alliance.png";
 
     /////////////////////////////
-    // 🧠 CACHE
-    /////////////////////////////
-
-    const CACHE_KEY = "torn_alliance_cache";
-    const CACHE_TIME_KEY = "torn_alliance_cache_time";
-
-    function getCache() {
-        const data = localStorage.getItem(CACHE_KEY);
-        const time = localStorage.getItem(CACHE_TIME_KEY);
-
-        if (!data || !time) return null;
-
-        const age = (Date.now() - parseInt(time)) / 60000;
-        if (age > SETTINGS.cacheMinutes) return null;
-
-        return JSON.parse(data);
-    }
-
-    function setCache(data) {
-        localStorage.setItem(CACHE_KEY, JSON.stringify(data));
-        localStorage.setItem(CACHE_TIME_KEY, Date.now());
-    }
-
-    /////////////////////////////
-    // 🌐 FETCH DATA
+    // FETCH DATA
     /////////////////////////////
 
     function fetchAllianceData() {
-        return new Promise((resolve) => {
-            const cached = getCache();
-            if (cached) return resolve(cached);
-
+        return new Promise(resolve => {
             GM_xmlhttpRequest({
                 method: "GET",
                 url: CONFIG_URL,
                 onload: res => {
                     try {
                         const json = JSON.parse(res.responseText);
-                        const factions = json.factions || [];
-                        setCache(factions);
-                        resolve(factions);
+                        resolve(json.factions || []);
                     } catch {
                         resolve([]);
                     }
@@ -76,7 +40,7 @@
     }
 
     /////////////////////////////
-    // 🔍 GET FACTION
+    // GET FACTION ID
     /////////////////////////////
 
     function getFactionId() {
@@ -88,81 +52,68 @@
     }
 
     /////////////////////////////
-    // 🖼️ ADD BADGE
+    // ADD BADGE
     /////////////////////////////
 
     function addBadge() {
         if (document.getElementById("alliance-badge")) return;
 
-        const container = document.querySelector('.profile-wrapper, .user-profile');
-        if (!container) return;
+        const target = document.querySelector('.profile-wrapper, .user-profile');
+        if (!target) return;
 
-        const badge = document.createElement("div");
-        badge.id = "alliance-badge";
+        const div = document.createElement("div");
+        div.id = "alliance-badge";
+        div.style.textAlign = "center";
+        div.style.marginBottom = "10px";
 
-        badge.innerHTML = `
-            <div style="text-align:center; margin-bottom:10px;">
-                <img src="${BADGE_URL}" style="
-                    width:120px;
-                    border-radius:10px;
-                    box-shadow:0 0 10px rgba(0,0,0,0.5);
-                ">
-                <div style="
-                    color:#4CAF50;
-                    font-weight:bold;
-                    margin-top:5px;
-                ">
-                    ALLIANCE MEMBER
-                </div>
-            </div>
+        div.innerHTML = `
+            <img src="${BADGE_URL}" style="width:120px;border-radius:10px;">
+            <div style="color:#4CAF50;font-weight:bold;">ALLIANCE MEMBER</div>
         `;
 
-        container.prepend(badge);
+        target.prepend(div);
     }
 
     /////////////////////////////
-    // ⚠️ WARNING
+    // ATTACK WARNING
     /////////////////////////////
 
     function attachWarning(factionId) {
         const btn = document.querySelector('a[href*="loader.php?sid=attack"]');
         if (!btn) return;
 
-        btn.addEventListener("click", function(e) {
-            if (SETTINGS.blockAttack) {
-                alert(`🚫 BLOCKED: Alliance member (${factionId})`);
-                e.preventDefault();
-                return;
-            }
-
-            if (!confirm(`⚠️ Alliance member (${factionId}) — Attack anyway?`)) {
+        btn.onclick = function(e) {
+            if (!confirm(`⚠️ Alliance member (${factionId}) — attack anyway?`)) {
                 e.preventDefault();
             }
-        });
+        };
     }
 
     /////////////////////////////
-    // 🚀 MAIN
+    // MAIN LOOP (important fix)
     /////////////////////////////
 
-    async function init() {
+    let lastFaction = null;
+
+    async function run() {
         const factions = await fetchAllianceData();
-        const factionId = getFactionId();
 
-        if (!factionId) return;
+        const interval = setInterval(() => {
+            const factionId = getFactionId();
 
-        if (factions.includes(factionId)) {
-            addBadge();
-            attachWarning(factionId);
-        }
+            if (!factionId || factionId === lastFaction) return;
+
+            lastFaction = factionId;
+
+            if (factions.includes(factionId)) {
+                console.log("Alliance detected:", factionId);
+                addBadge();
+                attachWarning(factionId);
+            }
+        }, 1000); // keeps checking until page fully loads
     }
 
-    /////////////////////////////
-    // ⏱️ OBSERVER
-    /////////////////////////////
-
-    const observer = new MutationObserver(init);
-    observer.observe(document, { childList: true, subtree: true });
+    run();
 
 })();
 
