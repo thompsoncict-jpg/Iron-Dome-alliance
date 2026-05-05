@@ -21,31 +21,17 @@
     // CACHE (important)
     /////////////////////////////
 
-    let allianceFactions = [];
+       async function loadAllianceData() {
+        try {
+            // Force fresh request every time
+            const res = await fetch(CONFIG_URL + "?t=" + Date.now());
+            const json = await res.json();
+            allianceFactions = json.factions || [];
 
-    function loadAllianceData() {
-        return new Promise(resolve => {
-            const cached = localStorage.getItem("alliance_cache");
-
-            if (cached) {
-                allianceFactions = JSON.parse(cached);
-                resolve();
-                return;
-            }
-
-            GM_xmlhttpRequest({
-                method: "GET",
-                url: CONFIG_URL,
-                onload: res => {
-                    try {
-                        allianceFactions = JSON.parse(res.responseText).factions || [];
-                        localStorage.setItem("alliance_cache", JSON.stringify(allianceFactions));
-                    } catch {}
-                    resolve();
-                },
-                onerror: () => resolve()
-            });
-        });
+            console.log("✅ Alliance data loaded:", allianceFactions);
+        } catch (e) {
+            console.log("❌ Failed to fetch alliance data", e);
+        }
     }
 
     /////////////////////////////
