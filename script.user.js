@@ -1,6 +1,6 @@
 // ==UserScript==
-// @name         Torn Alliance Toolkit (Browser)
-// @version      4.0
+// @name         Torn Alliance Toolkit (Browser FIXED)
+// @version      5.0
 // @match        https://www.torn.com/*
 // @grant        GM_xmlhttpRequest
 // @connect      raw.githubusercontent.com
@@ -9,13 +9,13 @@
 (function() {
     'use strict';
 
-    const CONFIG_URL = "https://raw.githubusercontent.com/thompsoncict-jpg/Iron-Dome-alliance/refs/heads/main/alliance.json";
+    const CONFIG_URL = "https://raw.githubusercontent.com/thompsoncict-jpg/Iron-Dome-alliance/main/alliance.json";
     const BADGE_URL  = "https://raw.githubusercontent.com/thompsoncict-jpg/Iron-Dome-alliance/main/alliance.png";
 
     let allianceFactions = [];
 
     /////////////////////////////
-    // FETCH
+    // FETCH DATA
     /////////////////////////////
 
     function loadAllianceData() {
@@ -26,34 +26,50 @@
                 onload: res => {
                     try {
                         allianceFactions = JSON.parse(res.responseText).factions || [];
-                        console.log("Browser factions:", allianceFactions);
-                    } catch {}
+                        console.log("✅ Loaded factions:", allianceFactions);
+                    } catch (e) {
+                        console.log("❌ JSON error", e);
+                    }
                     resolve();
                 },
-                onerror: () => resolve()
+                onerror: () => {
+                    console.log("❌ Fetch failed");
+                    resolve();
+                }
             });
         });
     }
 
     /////////////////////////////
-    // DETECT FACTION
+    // STRONG FACTION DETECTION
     /////////////////////////////
 
     function getFactionId() {
-        const links = document.querySelectorAll('a[href*="factions.php"]');
+        // Look through ALL links (more reliable)
+        const links = document.querySelectorAll("a[href]");
 
         for (let link of links) {
-            try {
-                const id = new URL(link.href).searchParams.get("ID");
-                if (id) return parseInt(id);
-            } catch {}
+            const href = link.getAttribute("href");
+            if (!href) continue;
+
+            if (href.includes("factions.php") && href.includes("ID=")) {
+                try {
+                    const url = new URL(link.href);
+                    const id = url.searchParams.get("ID");
+
+                    if (id) {
+                        console.log("🔎 Found faction ID:", id);
+                        return parseInt(id);
+                    }
+                } catch {}
+            }
         }
 
         return null;
     }
 
     /////////////////////////////
-    // BADGE
+    // FORCE BADGE (VISIBLE)
     /////////////////////////////
 
     function addBadge() {
@@ -63,19 +79,23 @@
         badge.id = "alliance-badge";
 
         badge.style.position = "fixed";
-        badge.style.top = "100px";
+        badge.style.top = "120px";
         badge.style.right = "20px";
-        badge.style.zIndex = "9999";
+        badge.style.zIndex = "999999";
         badge.style.background = "#111";
-        badge.style.padding = "10px";
+        badge.style.padding = "12px";
         badge.style.borderRadius = "10px";
+        badge.style.boxShadow = "0 0 10px rgba(0,0,0,0.5)";
 
         badge.innerHTML = `
-            <img src="${BADGE_URL}" style="width:80px;">
-            <div style="color:#4CAF50;font-weight:bold;text-align:center;">ALLY</div>
+            <img src="${BADGE_URL}" style="width:80px; display:block; margin:auto;">
+            <div style="color:#4CAF50;font-weight:bold;text-align:center;margin-top:5px;">
+                ALLIANCE
+            </div>
         `;
 
         document.body.appendChild(badge);
+        console.log("✅ Badge added");
     }
 
     /////////////////////////////
@@ -94,16 +114,19 @@
     }
 
     /////////////////////////////
-    // RUN
+    // MAIN CHECK
     /////////////////////////////
 
     function runCheck() {
-        const id = getFactionId();
-        if (!id) return;
+        const factionId = getFactionId();
+        if (!factionId) return;
 
-        if (allianceFactions.includes(id)) {
+        console.log("👀 Checking faction:", factionId);
+
+        if (allianceFactions.includes(factionId)) {
+            console.log("🟢 MATCH FOUND");
             addBadge();
-            attachWarning(id);
+            attachWarning(factionId);
         }
     }
 
@@ -114,14 +137,9 @@
     async function init() {
         await loadAllianceData();
 
-        setInterval(runCheck, 1000);
-        setInterval(loadAllianceData, 30000);
+        setInterval(runCheck, 1500);   // check constantly
+        setInterval(loadAllianceData, 30000); // refresh data
     }
-
-    init();
-
-})();
-
 
     init();
 
