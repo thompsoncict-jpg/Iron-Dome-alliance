@@ -18,6 +18,7 @@
 
     let allianceFactions = [];
 
+
     /////////////////////////////
     // FETCH DATA
     /////////////////////////////
@@ -45,30 +46,33 @@
     }
 
     /////////////////////////////
-    // FIXED FACTION DETECTION
+    // 🔥 PRECISE FACTION DETECTION
     /////////////////////////////
 
     function getFactionId() {
-        // ONLY look inside profile header
-        const profile = document.querySelector('[class*="profile"]');
-        if (!profile) return null;
+        // Find ALL rows that contain "Faction"
+        const elements = Array.from(document.querySelectorAll("div, li, span"));
 
-        const link = profile.querySelector('a[href*="factions.php"][href*="ID="]');
-        if (!link) return null;
-
-        try {
-            const id = new URL(link.href).searchParams.get("ID");
-            if (id) {
-                console.log("🎯 Player faction:", id);
-                return parseInt(id);
+        for (let el of elements) {
+            if (el.textContent && el.textContent.trim().startsWith("Faction")) {
+                const link = el.querySelector('a[href*="factions.php"][href*="ID="]');
+                if (link) {
+                    try {
+                        const id = new URL(link.href).searchParams.get("ID");
+                        if (id) {
+                            console.log("🎯 Correct faction ID:", id);
+                            return parseInt(id);
+                        }
+                    } catch {}
+                }
             }
-        } catch {}
+        }
 
         return null;
     }
 
     /////////////////////////////
-    // ADD BADGE
+    // BADGE
     /////////////////////////////
 
     function addBadge() {
@@ -96,17 +100,13 @@
         document.body.appendChild(badge);
     }
 
-    /////////////////////////////
-    // REMOVE BADGE (important)
-    /////////////////////////////
-
     function removeBadge() {
         const badge = document.getElementById("alliance-badge");
         if (badge) badge.remove();
     }
 
     /////////////////////////////
-    // ATTACK WARNING
+    // WARNING
     /////////////////////////////
 
     function attachWarning(factionId) {
@@ -128,14 +128,11 @@
         const factionId = getFactionId();
         if (!factionId) return;
 
-        console.log("Checking:", factionId);
-
         if (allianceFactions.includes(factionId)) {
-            console.log("🟢 ALLY DETECTED");
             addBadge();
             attachWarning(factionId);
         } else {
-            removeBadge(); // FIXES false positives
+            removeBadge();
         }
     }
 
@@ -153,3 +150,4 @@
     init();
 
 })();
+
