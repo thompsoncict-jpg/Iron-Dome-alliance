@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         TID alliance
 // @namespace    http://tampermonkey.net/
-// @version      1.0
+// @version      2.0
 // @description  Warn before attacking allied factions in Torn
 // @match        https://www.torn.com/profiles.php*
 // @match        https://www.torn.com/loader.php?sid=attack*
@@ -11,7 +11,6 @@
 (function() {
     'use strict';
 
-    // 🔧 ADD YOUR ALLIANCE HERE
     const ALLIED_FACTIONS = [
         "51447",
   "48251",
@@ -46,9 +45,12 @@
     }
 
     function showWarning(faction) {
+        if (document.getElementById("alliance-warning")) return;
+
         let warning = document.createElement("div");
+        warning.id = "alliance-warning";
         warning.innerHTML = `
-            ⚠️ WARNING: ALLIED FACTION<br>
+            ⚠️ ALLIED FACTION WARNING ⚠️<br>
             <strong>${faction.name}</strong><br>
             Do NOT attack!
         `;
@@ -76,8 +78,14 @@
         }
     }
 
-    window.addEventListener('load', () => {
-        setTimeout(checkAlliance, 1500);
+    // 🔥 KEY FIX: keep checking until it finds faction
+    const observer = new MutationObserver(() => {
+        checkAlliance();
+    });
+
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true
     });
 
 })();
