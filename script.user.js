@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         TID alliance
 // @namespace    http://tampermonkey.net/
-// @version      2.0
-// @description  Warn before attacking allied factions in Torn
+// @version      3.0
+// @description  Fast warning for allied factions
 // @match        https://www.torn.com/profiles.php*
 // @match        https://www.torn.com/loader.php?sid=attack*
 // @grant        GM_addStyle
@@ -28,7 +28,7 @@
   "53857",
   "54366",
   "54120",
-  "52484",
+  "52484",, 
     ];
 
     function getFactionInfo() {
@@ -50,45 +50,49 @@
         let warning = document.createElement("div");
         warning.id = "alliance-warning";
         warning.innerHTML = `
-            ⚠️ ALLIED FACTION WARNING ⚠️<br>
-            <strong>${faction.name}</strong><br>
-            Do NOT attack!
+            ⚠️ ALLIED FACTION ⚠️<br>
+            <strong>${faction.name}</strong>
         `;
 
-        warning.style.position = "fixed";
-        warning.style.top = "20px";
-        warning.style.left = "50%";
-        warning.style.transform = "translateX(-50%)";
-        warning.style.background = "#b30000";
-        warning.style.color = "white";
-        warning.style.padding = "15px";
-        warning.style.borderRadius = "10px";
-        warning.style.zIndex = "9999";
-        warning.style.fontSize = "16px";
+        Object.assign(warning.style, {
+            position: "fixed",
+            top: "20px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            background: "#b30000",
+            color: "white",
+            padding: "12px",
+            borderRadius: "8px",
+            zIndex: "9999",
+            fontSize: "16px"
+        });
 
         document.body.appendChild(warning);
     }
 
-    function checkAlliance() {
-        let faction = getFactionInfo();
-        if (!faction) return;
+    function waitForFaction() {
+        let attempts = 0;
 
-        if (ALLIED_FACTIONS.includes(faction.id)) {
-            showWarning(faction);
-        }
+        const interval = setInterval(() => {
+            let faction = getFactionInfo();
+
+            if (faction) {
+                if (ALLIED_FACTIONS.includes(faction.id)) {
+                    showWarning(faction);
+                }
+                clearInterval(interval); // ✅ STOP once found
+            }
+
+            attempts++;
+            if (attempts > 20) clearInterval(interval); // stop after ~10s
+        }, 500); // check every 0.5s
     }
 
-    // 🔥 KEY FIX: keep checking until it finds faction
-    const observer = new MutationObserver(() => {
-        checkAlliance();
-    });
-
-    observer.observe(document.body, {
-        childList: true,
-        subtree: true
-    });
+    // Run immediately
+    waitForFaction();
 
 })();
+
 
 
 
