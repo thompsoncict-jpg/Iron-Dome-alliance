@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         TID alliance
 // @namespace    http://tampermonkey.net/
-// @version      4.1
+// @version      4.2
 // @description  Instant allied faction warning
 // @match        https://www.torn.com/profiles.php*
 // @match        https://www.torn.com/loader.php?sid=attack*
@@ -20,9 +20,11 @@
     ]);
 
     function getFactionFromProfile() {
-        const factionLink = document.querySelector('.profile-wrapper a[href*="factions.php"]');
+        // Updated selector to match current Torn City HTML structure
+        const factionLink = document.querySelector('a.t-blue[href*="factions.php"]');
         if (!factionLink) return null;
 
+        // Extract faction ID from URL (ID=54843&referredFrom=...)
         const match = factionLink.href.match(/ID=(\d+)/);
         if (!match || !match[1]) return null;
 
