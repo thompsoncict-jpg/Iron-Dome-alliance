@@ -55,7 +55,7 @@
 
         const box = document.createElement("div");
         box.id = "alliance-warning";
-        box.innerHTML = `⚠️ ALLIED: ${faction.name}`;
+        box.innerHTML = `⚠️ TID ALLIANCE: ${faction.name}`;
 
         Object.assign(box.style, {
             position: "fixed",
