@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         TID alliance
 // @namespace    http://tampermonkey.net/
-// @version      4.3
+// @version      4.4
 // @description  Instant allied faction warning
 // @match        https://www.torn.com/profiles.php*
 // @match        https://www.torn.com/loader.php?sid=attack*
