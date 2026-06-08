@@ -1,10 +1,11 @@
 // ==UserScript==
 // @name         TID alliance
 // @namespace    http://tampermonkey.net/
-// @version      4.2
+// @version      4.3
 // @description  Instant allied faction warning
 // @match        https://www.torn.com/profiles.php*
 // @match        https://www.torn.com/loader.php?sid=attack*
+// @match        https://www.torn.com/factions.php*
 // @grant        none
 // @run-at       document-end
 // ==/UserScript==
@@ -34,6 +35,21 @@
         };
     }
 
+    function getFactionFromFactionPage() {
+        // Extract faction ID from faction page URL
+        const match = window.location.href.match(/ID=(\d+)/);
+        if (!match || !match[1]) return null;
+
+        // Try to get faction name from page title or heading
+        const heading = document.querySelector('h4, h3, h2');
+        const name = heading ? heading.textContent.trim() : 'Unknown Faction';
+
+        return {
+            id: match[1],
+            name: name
+        };
+    }
+
     function showWarning(faction) {
         if (document.getElementById("alliance-warning")) return;
 
@@ -59,6 +75,18 @@
     }
 
     function runCheck() {
+        // Check if we're on a faction page
+        if (window.location.href.includes('factions.php')) {
+            const faction = getFactionFromFactionPage();
+            if (!faction) return false;
+
+            if (ALLIED_FACTIONS.has(faction.id)) {
+                showWarning(faction);
+            }
+            return true;
+        }
+
+        // Otherwise check profile/attack pages
         const faction = getFactionFromProfile();
         if (!faction) return false;
 
