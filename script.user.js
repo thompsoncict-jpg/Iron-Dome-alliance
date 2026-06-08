@@ -85,7 +85,7 @@
 
             attempts++;
             if (attempts > 20) clearInterval(interval); // stop after ~10s
-        }, 500); // check every 0.5s
+        }, 200); // check every 0.5s
     }
 
     // Run immediately
