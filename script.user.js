@@ -1,11 +1,12 @@
 // ==UserScript==
 // @name         TID alliance
 // @namespace    http://tampermonkey.net/
-// @version      3.0
-// @description  Fast warning for allied factions
+// @version      4.0
+// @description  Instant allied faction warning
 // @match        https://www.torn.com/profiles.php*
 // @match        https://www.torn.com/loader.php?sid=attack*
-// @grant        GM_addStyle
+// @grant        none
+// @run-at       document-end
 // ==/UserScript==
 
 (function() {
@@ -28,72 +29,65 @@
   "53857",
   "54366",
   "54120",
-  "52484",, 
+  "52484",
     ];
 
-    function getFactionInfo() {
-        let factionLink = document.querySelector('a[href*="factions.php"]');
+    function getFactionFromProfile() {
+        // 🔥 TARGET ONLY profile info area (much faster)
+        let factionLink = document.querySelector('.profile-wrapper a[href*="factions.php"]');
+
         if (!factionLink) return null;
 
-        let factionIdMatch = factionLink.href.match(/ID=(\d+)/);
-        let factionName = factionLink.textContent.trim();
+        let match = factionLink.href.match(/ID=(\d+)/);
 
         return {
-            id: factionIdMatch ? factionIdMatch[1] : null,
-            name: factionName
+            id: match ? match[1] : null,
+            name: factionLink.textContent.trim()
         };
     }
 
     function showWarning(faction) {
         if (document.getElementById("alliance-warning")) return;
 
-        let warning = document.createElement("div");
-        warning.id = "alliance-warning";
-        warning.innerHTML = `
-            ⚠️ ALLIED FACTION ⚠️<br>
-            <strong>${faction.name}</strong>
-        `;
+        let box = document.createElement("div");
+        box.id = "alliance-warning";
+        box.innerHTML = `⚠️ ALLIED: ${faction.name}`;
 
-        Object.assign(warning.style, {
+        Object.assign(box.style, {
             position: "fixed",
-            top: "20px",
+            top: "10px",
             left: "50%",
             transform: "translateX(-50%)",
             background: "#b30000",
-            color: "white",
-            padding: "12px",
-            borderRadius: "8px",
+            color: "#fff",
+            padding: "10px 15px",
+            borderRadius: "6px",
             zIndex: "9999",
-            fontSize: "16px"
+            fontWeight: "bold"
         });
 
-        document.body.appendChild(warning);
+        document.body.appendChild(box);
     }
 
-    function waitForFaction() {
-        let attempts = 0;
+    function runCheck() {
+        let faction = getFactionFromProfile();
 
-        const interval = setInterval(() => {
-            let faction = getFactionInfo();
+        if (!faction) return false;
 
-            if (faction) {
-                if (ALLIED_FACTIONS.includes(faction.id)) {
-                    showWarning(faction);
-                }
-                clearInterval(interval); // ✅ STOP once found
-            }
+        if (ALLIED_FACTIONS.includes(faction.id)) {
+            showWarning(faction);
+        }
 
-            attempts++;
-            if (attempts > 20) clearInterval(interval); // stop after ~10s
-        }, 200); // check every 0.5s
+        return true;
     }
 
-    // Run immediately
-    waitForFaction();
+    // 🔥 FAST LOOP (stops immediately when found)
+    let tries = 0;
+    let fastCheck = setInterval(() => {
+        if (runCheck() || tries > 25) {
+            clearInterval(fastCheck);
+        }
+        tries++;
+    }, 100); // every 0.1s
 
 })();
-
-
-
-
-
