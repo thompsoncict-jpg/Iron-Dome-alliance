@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         Torn Alliance Attack Warning
+// @name         TID alliance
 // @namespace    http://tampermonkey.net/
 // @version      1.0
 // @description  Warn before attacking allied factions in Torn
