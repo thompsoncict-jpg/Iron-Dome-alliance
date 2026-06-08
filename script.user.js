@@ -59,7 +59,7 @@
 
         Object.assign(box.style, {
             position: "fixed",
-            top: "10px",
+            top: "66px",
             left: "50%",
             transform: "translateX(-50%)",
             background: "#b30000",
