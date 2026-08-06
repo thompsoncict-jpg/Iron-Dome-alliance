@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         TID alliance
 // @namespace    http://tampermonkey.net/
-// @version      4.7
+// @version      4.8
 // @description  Instant allied faction warning
 // @match        https://www.torn.com/profiles.php*
 // @match        https://www.torn.com/loader.php?sid=attack*
@@ -15,7 +15,7 @@
 
     // Use a Set for O(1) faction lookups
     const ALLIED_FACTIONS = new Set([
-        "51447", "48251", "48805", "53128", "52835", "53032", "51855",
+        "51447", "48251","53128", "52835", "53032", "51855",
         "43545", "35090", "51536", "50274", "52701", "54843",
         "18560", "53857", "54366", "54120", "52484", "49473",
         "45116","51064","41777","56552",
