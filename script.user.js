@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         TID alliance
 // @namespace    http://tampermonkey.net/
-// @version      4.8
+// @version      4.9
 // @description  Instant allied faction warning
 // @match        https://www.torn.com/profiles.php*
 // @match        https://www.torn.com/loader.php?sid=attack*
@@ -18,7 +18,7 @@
         "51447", "48251","53128", "52835", "53032", "51855",
         "43545", "35090", "51536", "50274", "52701", "54843",
         "18560", "53857", "54366", "54120", "52484", "49473",
-        "45116","51064","41777","56552",
+        "45116","51064","41777","56552","50467",
     ]);
 
     function getFactionFromProfile() {
